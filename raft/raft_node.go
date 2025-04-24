@@ -10,6 +10,7 @@ import (
 )
 
 func SetupRaft(nodeID, bindAddr, dataDir string) (*hashiraft.Raft, *FSM, error) {
+<<<<<<< HEAD
     config := hashiraft.DefaultConfig()
     config.LocalID = hashiraft.ServerID(nodeID)
     
@@ -18,6 +19,16 @@ func SetupRaft(nodeID, bindAddr, dataDir string) (*hashiraft.Raft, *FSM, error) 
     config.ElectionTimeout = 1000 * time.Millisecond
     config.LeaderLeaseTimeout = 500 * time.Millisecond
     config.CommitTimeout = 50 * time.Millisecond
+=======
+	config := hashiraft.DefaultConfig()
+	config.LocalID = hashiraft.ServerID(nodeID)
+	
+	// Add these configurations
+	config.HeartbeatTimeout = 1000 * time.Millisecond
+	config.ElectionTimeout = 1000 * time.Millisecond
+	config.LeaderLeaseTimeout = 500 * time.Millisecond
+	config.CommitTimeout = 50 * time.Millisecond
+>>>>>>> 2e529e80a058c1fc1899cb2d1d951f7aa1a6b82d
 
     // Set the bind address for the local node
     addr, err := net.ResolveTCPAddr("tcp", bindAddr)

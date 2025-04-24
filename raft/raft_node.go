@@ -12,6 +12,12 @@ import (
 func SetupRaft(nodeID, bindAddr, dataDir string) (*hashiraft.Raft, *FSM, error) {
 	config := hashiraft.DefaultConfig()
 	config.LocalID = hashiraft.ServerID(nodeID)
+	
+	// Add these configurations
+	config.HeartbeatTimeout = 1000 * time.Millisecond
+	config.ElectionTimeout = 1000 * time.Millisecond
+	config.LeaderLeaseTimeout = 500 * time.Millisecond
+	config.CommitTimeout = 50 * time.Millisecond
 
 	addr, err := net.ResolveTCPAddr("tcp", bindAddr)
 	if err != nil {
@@ -25,11 +31,22 @@ func SetupRaft(nodeID, bindAddr, dataDir string) (*hashiraft.Raft, *FSM, error) 
 
 	logStore, err := raftboltdb.NewBoltStore(fmt.Sprintf("%s/log.bolt", dataDir))
 	if err != nil {
+		// Add cleanup
+		if logStore != nil {
+			logStore.Close()
+		}
 		return nil, nil, fmt.Errorf("failed to create log store: %v", err)
 	}
 
 	stableStore, err := raftboltdb.NewBoltStore(fmt.Sprintf("%s/stable.bolt", dataDir))
 	if err != nil {
+		// Add cleanup
+		if logStore != nil {
+			logStore.Close()
+		}
+		if stableStore != nil {
+			stableStore.Close()
+		}
 		return nil, nil, fmt.Errorf("failed to create stable store: %v", err)
 	}
 

@@ -1,0 +1,18 @@
+To run nodes on sep terminals single machine
+
+go run main.go node1 127.0.0.1:12000 data1 8000
+go run main.go node2 127.0.0.1:12001 data2 8001
+go run main.go node3 127.0.0.1:12002 data3 8002
+
+
+curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"printer1\",\"company\":\"Creality\",\"model\":\"Ender 3\"}" http://127.0.0.1:8000/api/v1/printers
+
+curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"filament1\",\"type\":\"PLA\",\"color\":\"Blue\",\"total_weight_in_grams\":\"1000\",\"remaining_weight_in_grams\":\"1000\"}" http://127.0.0.1:8000/api/v1/filaments
+
+curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"job1\",\"printer_id\":\"printer1\",\"filament_id\":\"filament1\",\"print_weight_in_grams\":\"150\"}" http://127.0.0.1:8000/api/v1/print_jobs
+
+curl -X POST "http://127.0.0.1:8000/api/v1/print_jobs/{job_id}/status?status=running"
+
+curl http://127.0.0.1:8000/api/v1/filaments
+curl http://127.0.0.1:8000/api/v1/print_jobs
+

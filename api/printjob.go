@@ -16,6 +16,11 @@ func PostPrintJob(w http.ResponseWriter, r *http.Request, node *hashiraft.Raft) 
 		return
 	}
 
+	// Set initial status if not provided
+	if _, ok := job["status"]; !ok {
+		job["status"] = "Queued"
+	}
+
 	cmd := raft.Command{
 		Op:   "add_print_job",
 		Data: raft.MustMarshal(job),

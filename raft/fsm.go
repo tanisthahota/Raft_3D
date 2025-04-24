@@ -62,26 +62,36 @@ func (f *FSM) Apply(logEntry *hashiraft.Log) interface{} {
 		if err := json.Unmarshal(cmd.Data, &update); err == nil {
 			id := update["id"]
 			status := update["status"]
-			job := f.PrintJobs[id]
-
-			switch status {
-			case "Running":
-				if job["status"] == "Queued" {
-					job["status"] = "Running"
+			log.Printf("Updating job %s to status %s", id, status)  // Add debug log
+			
+			if job, exists := f.PrintJobs[id]; exists {
+				log.Printf("Current job status: %s", job["status"])  // Add debug log
+				
+				switch status {
+				case "running", "Running":
+					if job["status"] == "Queued" {
+						job["status"] = "Running"
+						log.Printf("Updated to Running")  // Add debug log
+					}
+				case "done", "Done", "completed", "Completed":
+					if job["status"] == "Running" {
+						job["status"] = "Done"
+						fid := job["filament_id"]
+						fil := f.Filaments[fid]
+						rem := parseInt(fil["remaining_weight_in_grams"])
+						used := parseInt(job["print_weight_in_grams"])
+						fil["remaining_weight_in_grams"] = intToString(rem - used)
+					}
+				case "canceled", "Canceled", "failed", "Failed":
+					if job["status"] == "Queued" || job["status"] == "Running" {
+						job["status"] = "Canceled"
+					}
 				}
-			case "Done":
-				if job["status"] == "Running" {
-					job["status"] = "Done"
-					fid := job["filament_id"]
-					fil := f.Filaments[fid]
-					rem := parseInt(fil["remaining_weight_in_grams"])
-					used := parseInt(job["print_weight_in_grams"])
-					fil["remaining_weight_in_grams"] = intToString(rem - used)
-				}
-			case "Canceled":
-				if job["status"] == "Queued" || job["status"] == "Running" {
-					job["status"] = "Canceled"
-				}
+				// Update the job in the map
+				f.PrintJobs[id] = job
+				log.Printf("Final job status: %s", f.PrintJobs[id]["status"])  // Add debug log
+			} else {
+				log.Printf("Job %s not found", id)  // Add debug log
 			}
 		}
 	}

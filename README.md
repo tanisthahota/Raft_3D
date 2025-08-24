@@ -61,19 +61,6 @@ The system uses BoltDB for persistent storage:
 - Snapshot store: Point-in-time snapshots of the system state
 
 
-## Architecture
-
-- **Consensus Protocol**: Hashicorp's Raft implementation
-- **Storage**: BoltDB (embedded key-value store)
-- **API**: RESTful HTTP endpoints
-- **Language**: Go
-
-## Features
-
-- **Distributed Consensus**: All data is replicated across multiple nodes
-- **Fault Tolerance**: System continues to operate even if some nodes fail
-- **Resource Management**: Track printers, filaments, and print jobs
-- **Automatic Filament Tracking**: Remaining filament weight is automatically updated when print jobs complete
 
 ## Getting Started
 
@@ -103,14 +90,41 @@ Each command takes the following arguments:
 3. Data directory for persistent storage
 4. HTTP port for the API
 ## Using the API
+Assume the leader runs on ```http://127.0.0.1:8000```.
 ### Add a Printer
-``` curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"printer1\",\"company\":\"Creality\",\"model\":\"Ender 3\"}" http://127.0.0.1:8000/api/v1/printers```
+```
+curl -X POST -H "Content-Type: application/json" \
+-d '{
+  "id":"printer1",
+  "company":"Creality",
+  "model":"Ender 3"
+}' http://127.0.0.1:8000/api/v1/printers
+```
 
 ### Add Filament
-```curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"filament1\",\"type\":\"PLA\",\"color\":\"Blue\",\"total_weight_in_grams\":\"1000\",\"remaining_weight_in_grams\":\"1000\"}" http://127.0.0.1:8000/api/v1/filaments ```
+
+``` 
+curl -X POST -H "Content-Type: application/json" \
+-d '{
+  "id":"filament1",
+  "type":"PLA",
+  "color":"Blue",
+  "total_weight_in_grams":1000,
+  "remaining_weight_in_grams":1000
+}' http://127.0.0.1:8000/api/v1/filaments
+```
 
 ### Add a Print Job
-```curl -X POST -H "Content-Type: application/json" -d "{\"id\":\"job1\",\"printer_id\":\"printer1\",\"filament_id\":\"filament1\",\"file_path\":\"/path/to/file.gcode\",\"status\":\"pending\"}" ### Add a Print Job```
+```
+curl -X POST -H "Content-Type: application/json" \
+-d '{
+  "id":"job1",
+  "printer_id":"printer1",
+  "filament_id":"filament1",
+  "file_path":"/path/to/file.gcode",
+  "status":"pending"
+}' http://127.0.0.1:8000/api/v1/print_jobs
+```
 
 ### Update Job Status 
 ``` curl -X POST "http://127.0.0.1:8000/api/v1/print_jobs/job1/status?status=running"```

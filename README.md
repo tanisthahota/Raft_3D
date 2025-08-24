@@ -2,6 +2,8 @@
 
 A distributed 3D printing management system built with Go, implementing the Raft consensus algorithm for high availability and fault tolerance.
 
+
+
 ## Overview
 
 Raft_3D is a cloud computing project that provides a distributed system for managing 3D printing resources. It uses the Raft consensus algorithm to ensure that all nodes in the cluster maintain a consistent view of the system state, even in the presence of node failures.
@@ -10,6 +12,24 @@ The system manages:
 - 3D Printers
 - Filaments (with tracking of remaining material)
 - Print Jobs (with status tracking)
+
+
+## Architecture
+
+- **Consensus Protocol**: Hashicorp's Raft implementation
+- **Storage**: BoltDB (embedded key-value store)
+- **API**: RESTful HTTP endpoints
+- **Language**: Go
+- **Network Distribution**: Can be deployed across multiple physical devices on a network
+
+## Features
+
+- **Distributed Consensus**: All data is replicated across multiple nodes
+- **Fault Tolerance**: System continues to operate even if some nodes fail
+- **Resource Management**: Track printers, filaments, and print jobs
+- **Automatic Filament Tracking**: Remaining filament weight is automatically updated when print jobs complete
+- **Network Distribution**: The system can be validated either on different terminals of the same device or on different physical devices over a network, demonstrating true distributed consensus across separate machines.
+
 
 
 ## How It Works
@@ -110,3 +130,47 @@ Each command takes the following arguments:
 
 - Get all printers
 ```curl http://127.0.0.1:8000/api/v1/printers ```
+
+## Project Improvements
+
+### Performance
+- **Optimized Raft Configuration:**  
+  Fine-tuned Raft parameters in `raft_node.go`:  
+  - HeartbeatTimeout: `1000ms`  
+  - ElectionTimeout: `1000ms`  
+  - LeaderLeaseTimeout: `500ms`  
+  - CommitTimeout: `50ms`  
+  → Improves leader election stability and reduces consensus latency.
+
+### Reliability
+- **Enhanced Error Handling:**  
+  Ensures BoltDB stores are properly closed if errors occur during `SetupRaft`.  
+- **Improved Status Handling:**  
+  Job status update logic now accepts multiple status formats (case-insensitive) and adds debug logging for state changes.
+
+### Monitoring
+- **Cluster State Monitoring:**  
+  Added a background goroutine that periodically logs:  
+  - Current node state  
+  - Term number  
+  - Leader info  
+  - Peer configuration  
+  → Improves operational visibility.
+
+### Deployment
+- **Smarter Cluster Bootstrap:**  
+  `main.go` checks if the cluster is already configured before bootstrapping to avoid conflicts.  
+- **Network Distribution:**  
+  Validated across multiple physical devices via IP-based bootstrap settings, proving real distributed consensus.
+
+### API
+- **More Flexible API:**  
+  Job status endpoint now accepts variations like `running/Running`, `done/Done/completed/Completed`, etc., making it more user-friendly.
+
+## Troubleshooting
+
+- Cannot bind port: Verify no other process is using the Raft or HTTP port.
+
+- Cluster not electing a leader: Check nodes can reach each other (firewall, IP/port correctness).
+
+- State not persisting: Confirm the data directory is writable and not ephemeral.
